@@ -45,8 +45,40 @@ const addButton = homeworkContainer.querySelector('#add-button');
 // таблица со списком cookie
 const listTable = homeworkContainer.querySelector('#list-table tbody');
 
-filterNameInput.addEventListener('input', function () {});
+function getTableData() {
+  listTable.innerHTML = '';
+  const input = filterNameInput.value;
+  const cookies = document.cookie.split('; ').reduce((prev, current) => {
+    const [name, value] = current.split('=');
+    prev[name] = value;
+    return prev;
+  }, {});
+  let output = '';
+  for (const key in cookies) {
+    if (key.indexOf(input) !== -1 || cookies[key].indexOf(input) !== -1 || input === '')
+      output += `<tr><td class="name_cookie">${key}</td><td>${cookies[key]}</td><td><button class="delete">Удалить</button></td></tr>`;
+  }
+  listTable.innerHTML = output;
+}
+getTableData();
 
-addButton.addEventListener('click', () => {});
+filterNameInput.addEventListener('input', function () {
+  getTableData();
+});
 
-listTable.addEventListener('click', (e) => {});
+addButton.addEventListener('click', () => {
+  const expires = new Date(Date.now() + 86400 * 1000).toUTCString();
+  document.cookie = `${addNameInput.value}=${addValueInput.value};expires=${expires};path=/`;
+  // addNameInput.value = '';
+  //addValueInput.value = '';
+  getTableData();
+});
+
+listTable.addEventListener('click', (e) => {
+  if (e.target.nodeName === 'BUTTON' && e.target.className === 'delete') {
+    const nameCookie = e.target.parentElement.parentElement.querySelector('.name_cookie')
+      .innerText;
+    document.cookie = `${nameCookie}=deleted;max-age=0;path=/`;
+    getTableData();
+  }
+});
